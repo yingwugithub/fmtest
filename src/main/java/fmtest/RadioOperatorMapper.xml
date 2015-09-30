@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kinstalk.dao.RadioOperatorMapper">
+
+
+
+<!-- 查询电台列表分页-->
+    <select id="selectRadioList" parameterType="java.util.Map" resultType="com.kinstalk.domain.AdminRadioChannel">
+        SELECT a.id ,
+               a.radio_id as radioId,
+               a.name ,
+               a.radio_name as radioName,
+               a.hz,
+               a.status,
+               a.create_time as createTime,
+               a.update_time as updateTime,
+               b.name as locationName
+
+        from radio_fm  a INNER  JOIN  radio_location  b on a.radio_id = b.id
+        where status = 1
+        <if test="provenceId != null and provenceId != '' ">
+             and  radio_id = #{provenceId}
+        </if>
+        group by a.radio_id ,a.id
+        order by a.id
+        limit #{startIndex}  , #{pageSize}
+
+
+    </select>
+    <!-- 查询电台列表分页总条数-->
+    <select id="selectRadioListCount" parameterType="map" resultType="int">
+        select sum( c.num )
+            from (
+                    SELECT count( 1 ) as num
+                    from radio_fm  a INNER  JOIN  radio_location  b on a.radio_id = b.id
+                    where status = 1
+                    <if test="provenceId != null and provenceId != '' ">
+                        and  radio_id = #{provenceId}
+                    </if>
+                    group by a.radio_id ,a.id
+                    order by a.id
+        ) c
+
+
+
+    </select>
+    <!--  查询所有省份-->
+    <select id="findProvenceList" resultType="java.util.Map" >
+        SELECT  id, name
+        from radio_location
+
+    </select>
+    <!--  查询频道对象-->
+    <select id="findRadioFm" parameterType="long" resultType="com.kinstalk.domain.AdminRadioChannel" >
+        SELECT  id,
+                radio_id as radioId,
+                name ,
+                radio_name as radioName ,
+                hz
+
+        from radio_fm
+        where id = #{ value }
+    </select>
+
+
+    <!-- 添加频道信息-->
+    <insert id="addRadioInfo" parameterType="java.util.Map" >
+        insert into radio_fm (
+                <if test="radioId != null and radioId != '' ">
+                   radio_id ,
+                </if>
+                <if test="name != null and name != '' ">
+                    name,
+                </if>
+                <if test="radioName != null and radioName != '' ">
+                    radio_name ,
+                </if>
+                <if test="hz != null and hz != '' ">
+                     hz,
+                </if>
+                <if test="createTime != null and createTime != '' ">
+                    create_time
+                </if>
+        )
+        values
+        (
+            <if test="radioId != null and radioId != '' ">
+                #{radioId},
+            </if>
+            <if test="name != null and name != '' ">
+                #{name} ,
+            </if>
+            <if test="radioName != null and radioName != '' ">
+                #{radioName} ,
+            </if>
+            <if test="hz != null and hz != '' ">
+                #{hz} ,
+            </if>
+            <if test="createTime != null and createTime != '' ">
+               #{createTime}
+            </if>
+        )
+        <selectKey keyProperty="id" resultType="long" order="AFTER">SELECT LAST_INSERT_ID()</selectKey>
+
+
+
+    </insert>
+
+    <!-- 修改频道数据 -->
+     <update id="updateRadioInfo" parameterType="java.util.Map" >
+         update radio_fm
+         set
+             radio_id = #{radioId}
+             <if test="name !=null ">
+                 ,name=#{name}
+             </if>
+
+             <if test="radioName !=null ">
+                 ,radio_name=#{radioName}
+             </if>
+
+             <if test="hz !=null ">
+                 ,hz=#{hz}
+             </if>
+             <if test="updateTime !=null ">
+                 ,update_time=#{updateTime}
+             </if>
+
+         where id = #{id}
+     </update>
+    <!-- 修改频道状态-->
+    <update id="updateRadioStatus"  parameterType="java.util.Map" >
+          update radio_fm
+            set <if test="type == 1">
+                  status = #{status}
+                </if>
+
+          WHERE  id = #{id}
+
+    </update>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</mapper>
